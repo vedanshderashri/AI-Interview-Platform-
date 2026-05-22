@@ -1,0 +1,124 @@
+{
+  "version": "1.0",
+  "scoring": {
+    "total_score": 100,
+    "sections": {
+      "keywords_match": {
+        "weight": 30,
+        "description": "Match between resume keywords and job description",
+        "rules": {
+          "exact_match": 1.0,
+          "partial_match": 0.6,
+          "synonym_match": 0.8,
+          "missing_penalty": -0.5
+        }
+      },
+      "skills_relevance": {
+        "weight": 20,
+        "description": "Relevant technical and soft skills",
+        "rules": {
+          "primary_skill": 1.0,
+          "secondary_skill": 0.7,
+          "outdated_skill_penalty": -0.3
+        }
+      },
+      "experience": {
+        "weight": 20,
+        "description": "Years and relevance of experience",
+        "rules": {
+          "exact_year_match": 1.0,
+          "underqualified_penalty": -0.5,
+          "overqualified_penalty": -0.2,
+          "domain_match": 1.0,
+          "domain_mismatch": 0.5
+        }
+      },
+      "education": {
+        "weight": 10,
+        "description": "Degree and institution relevance",
+        "rules": {
+          "required_degree_match": 1.0,
+          "related_degree": 0.7,
+          "unrelated_degree": 0.3
+        }
+      },
+      "formatting": {
+        "weight": 10,
+        "description": "ATS readability of resume",
+        "rules": {
+          "has_headings": 1,
+          "has_bullets": 1,
+          "no_tables": 1,
+          "no_images": 1,
+          "penalty_per_issue": -0.5
+        }
+      },
+      "projects": {
+        "weight": 5,
+        "description": "Project relevance and impact",
+        "rules": {
+          "relevant_project": 1.0,
+          "generic_project": 0.5,
+          "impact_metrics_bonus": 0.3
+        }
+      },
+      "certifications": {
+        "weight": 5,
+        "description": "Relevant certifications",
+        "rules": {
+          "top_certification": 1.0,
+          "mid_certification": 0.6,
+          "irrelevant_certification": 0.2
+        }
+      }
+    }
+  },
+
+  "normalization": {
+    "max_score": 100,
+    "min_score": 0,
+    "rounding": "nearest_integer"
+  },
+
+  "penalties": {
+    "keyword_stuffing": -5,
+    "spelling_errors": -3,
+    "missing_sections": -5,
+    "short_resume": -2
+  },
+
+  "bonuses": {
+    "quantified_achievements": 5,
+    "leadership_experience": 3,
+    "open_source_contributions": 2
+  },
+
+  "output": {
+    "include": [
+      "final_score",
+      "section_scores",
+      "missing_keywords",
+      "matched_keywords",
+      "suggestions",
+      "strengths",
+      "weaknesses"
+    ]
+  },
+
+  "thresholds": {
+    "excellent": 85,
+    "good": 70,
+    "average": 50,
+    "poor": 30
+  },
+
+  "suggestion_engine": {
+    "rules": {
+      "low_keyword_match": "Add more job-specific keywords.",
+      "low_experience": "Highlight relevant experience clearly.",
+      "formatting_issues": "Use ATS-friendly formatting (no tables/images).",
+      "missing_skills": "Include required technical skills.",
+      "weak_projects": "Add measurable impact in projects."
+    }
+  }
+}

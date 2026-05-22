@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Video Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #000;
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #fff;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    video {
+      width: 100%;
+      max-width: 600px;
+      background: #111;
+      border: 2px solid #666;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    h1 { margin-top: 0; }
+    p { line-height: 1.6; }
+    .success {
+      color: #0f0;
+      font-weight: bold;
+    }
+    .error {
+      color: #f00;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎥 Video Test</h1>
+    <p>Testing video playback from <code>/boy-interview.mp4</code></p>
+    
+    <video controls autoplay muted>
+      <source src="/boy-interview.mp4" type="video/mp4">
+      Your browser doesn't support HTML5 video.
+    </video>
+    
+    <p id="status">Loading...</p>
+    
+    <script>
+      const video = document.querySelector('video');
+      const status = document.getElementById('status');
+      
+      video.addEventListener('loadstart', () => {
+        status.textContent = '⏳ Loading video...';
+      });
+      
+      video.addEventListener('canplay', () => {
+        status.innerHTML = '<span class="success">✅ Video loaded successfully!</span>';
+        console.log('Video loaded:', video.duration, 'seconds');
+      });
+      
+      video.addEventListener('error', (e) => {
+        status.innerHTML = '<span class="error">❌ Error loading video</span><br>' + (e.target.error?.message || 'Unknown error');
+        console.error('Video error:', video.error);
+      });
+      
+      video.addEventListener('play', () => {
+        console.log('Video playing');
+      });
+    </script>
+  </div>
+</body>
+</html>
