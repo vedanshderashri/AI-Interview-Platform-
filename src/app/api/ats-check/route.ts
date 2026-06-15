@@ -1,22 +1,23 @@
 import { NextResponse } from 'next/server';
-import Groq from 'groq-sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import atsConfig from '@/config/ats-scoring.json';
 
-const groq = process.env.GROQ_API_KEY ? new Groq({ apiKey: process.env.GROQ_API_KEY }) : null;
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
-// Helper function to extract text from PDF
+// Helper function to extract text from PDF as a fallback heuristic source
 async function extractTextFromPDF(file: File): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer();
-  const uint8Array = new Uint8Array(arrayBuffer);
-  
-  // Simple text extraction - in production, use pdfjs or similar
-  const text = new TextDecoder().decode(uint8Array);
-  return text;
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    const text = new TextDecoder().decode(uint8Array);
+    return text;
+  } catch (e) {
+    return "Fallback simple developer profile.";
+  }
 }
 
-// Fallback mock analysis when API quota is exceeded or error occurs
+// Heuristic fallback analysis when API quota is exceeded or Gemini fails
 function generateFallbackAnalysis(resumeText: string) {
-  // Simple heuristic analysis as fallback
   const hasKeywords = (keywords: string[]) => keywords.some(kw => resumeText.toLowerCase().includes(kw));
   
   const techKeywords = ['python', 'javascript', 'typescript', 'react', 'node', 'java', 'sql', 'aws', 'docker', 'api'];
@@ -85,49 +86,66 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    if (!groq) {
+    if (!genAI) {
       return NextResponse.json({
         success: false,
-        error: 'GROQ_API_KEY not configured. Please set up your API key in environment variables.'
+        error: 'GEMINI_API_KEY not configured. Please set up your API key in environment variables.'
       }, { status: 500 });
     }
 
-    // Extract text from PDF
-    const resumeText = await extractTextFromPDF(file);
+    const jobDescription = formData.get('jobDescription') as string || '';
 
-    if (!resumeText.trim() || resumeText.length < 50) {
-      return NextResponse.json({ 
-        error: 'Could not extract sufficient text from the file. Please ensure it\'s a valid text-based PDF.' 
-      }, { status: 400 });
+    // Convert PDF file directly to base64
+    const arrayBuffer = await file.arrayBuffer();
+    const base64String = Buffer.from(arrayBuffer).toString('base64');
+    const mimeType = file.type || 'application/pdf';
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+      }
+    });
+
+    let jobDescPrompt = "";
+    if (jobDescription.trim()) {
+      jobDescPrompt = `
+      # TARGET JOB DESCRIPTION
+      The candidate is applying for a role with the following target Job Description:
+      """
+      ${jobDescription}
+      """
+      
+      You must evaluate keywords matching, skills relevance, experience, and projects strictly against this target job description! Tailor strengths, missing technical keywords, gaps, suggestions, and improvements precisely to help them optimize for this specific target job.
+      `;
+    } else {
+      jobDescPrompt = `
+      # TARGET PROFILE
+      No specific target job description was provided. Analyze the resume generally for their core professional alignment (e.g. software development, product management, etc.) and suggest industry-standard skills and keywords relevant to their general profile.
+      `;
     }
 
     const prompt = `
     # ROLE
-    You are a Senior Technical Recruiter and ATS (Applicant Tracking System) Optimization Expert. Your goal is to analyze the provided resume text with extreme precision and provide a high-fidelity report.
+    You are a Senior Technical Recruiter and ATS (Applicant Tracking System) Optimization Expert. Your goal is to analyze the provided resume document and provide a high-fidelity diagnostic audit report.
 
-    # RESUME CONTENT
-    """
-    ${resumeText}
-    """
+    ${jobDescPrompt}
 
     # SCORING CONFIGURATION
-    ${JSON.stringify(atsConfig.scoring.sections, null, 2)}
+    ${JSON.stringify(atsConfig, null, 2)}
 
     # OBJECTIVE
-    Analyze the resume for:
-    1. **Keyword Density**: Identify industry-standard technical and soft skill keywords.
-    2. **Structural Integrity**: Check for standard sections (Experience, Education, Skills, etc.).
-    3. **Content Quality**: Evaluate the use of action verbs and quantified achievements (e.g., "Increased revenue by 20%").
-    4. **ATS Readability**: Identify potential formatting issues that might trip up older ATS systems.
-    5. **Impact Scoring**: Provide a weighted score based on the provided configuration.
+    Perform a complete, detailed, and highly accurate analysis of the candidate's resume, incorporating keywords matching, skills relevance, experience, education, formatting, projects, and certifications.
+    Score each section rigorously according to the weight configurations provided. Deduct points for penalties, and reward bonuses where applicable. The total score must sum up precisely to the final_score out of 100 based on the weights.
 
     # OUTPUT SPECIFICATIONS
-    Return ONLY a JSON object. Do not include any introductory or concluding text.
-    The JSON must follow this exact structure:
+    You MUST respond with a valid JSON object matching this schema. Do not output any markdown formatting tags (like \`\`\`json) or any conversational text. Return ONLY the JSON object.
+    
+    The JSON structure:
     {
       "success": true,
       "final_score": <integer 0-100>,
-      "rating": "<'excellent' | 'good' | 'average' | 'poor'>",
+      "rating": "<'excellent' | 'good' | 'average' | 'poor' based on thresholds>",
       "scores": {
         "keywords_match": <integer 0-100>,
         "skills_relevance": <integer 0-100>,
@@ -137,42 +155,43 @@ export async function POST(request: Request) {
         "projects": <integer 0-100>,
         "certifications": <integer 0-100>
       },
-      "matched_keywords": [<string array of found keywords>],
-      "missing_keywords": [<string array of recommended keywords based on the profile>],
-      "strengths": [<string array of 3-5 major strengths>],
-      "weaknesses": [<string array of 3-5 specific areas for improvement>],
-      "suggestions": [<string array of 5+ actionable, high-impact recommendations>],
-      "formatting_issues": [<string array of identified formatting problems>],
-      "overall_feedback": "A 2-3 sentence professional summary"
+      "matched_keywords": [<string array of key professional/tech keywords found in the resume>],
+      "missing_keywords": [<string array of highly recommended industry-standard keywords missing from the resume based on their profile>],
+      "strengths": [<string array of 3-5 major concrete strengths>],
+      "weaknesses": [<string array of 3-5 specific concrete areas for improvement>],
+      "suggestions": [<string array of 5+ actionable, high-impact concrete recommendations to boost the score>],
+      "formatting_issues": [<string array of identified formatting problems like missing sections, tables, images, spelling errors>],
+      "overall_feedback": "A professional 3-4 sentence diagnostic summary detailing their market competitiveness."
     }
     `;
 
+    const documentPart = {
+      inlineData: {
+        data: base64String,
+        mimeType: mimeType
+      }
+    };
+
     try {
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: "You are a professional ATS analyzer. You output ONLY valid JSON."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.2,
-        response_format: { type: "json_object" }
-      });
+      const result = await model.generateContent([prompt, documentPart]);
+      const response = await result.response;
+      const responseText = response.text() || '';
 
-      const outputText = completion.choices[0]?.message?.content || "";
-      const jsonResponse = JSON.parse(outputText);
+      let cleanedText = responseText.trim();
+      if (cleanedText.startsWith('```')) {
+        cleanedText = cleanedText.replace(/^```[a-zA-Z]*\n/, '');
+        cleanedText = cleanedText.replace(/\n```$/, '');
+      }
 
+      const jsonResponse = JSON.parse(cleanedText);
       return NextResponse.json(jsonResponse, { status: 200 });
 
     } catch (apiError: any) {
-      console.error('Groq API Error:', apiError);
-      // Fallback to heuristic analysis if API fails
-      return NextResponse.json(generateFallbackAnalysis(resumeText), { status: 200 });
+      console.error('Gemini API Error:', apiError);
+      
+      // Fallback heuristic if API parsing fails
+      const fallbackText = await extractTextFromPDF(file);
+      return NextResponse.json(generateFallbackAnalysis(fallbackText), { status: 200 });
     }
 
   } catch (error: any) {

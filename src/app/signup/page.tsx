@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, User, ArrowRight, Github } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight } from 'lucide-react';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -35,79 +35,74 @@ export default function SignupPage() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F5F5F5] font-inter p-4">
-      {/* Background Decor */}
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#090B11] font-sans p-4 relative overflow-hidden">
+      {/* Background Decor Nebula */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-[#4CAF50]/10 blur-[120px]" />
-        <div className="absolute -bottom-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[120px]" />
+        <div className="absolute top-[10%] right-[10%] w-[300px] h-[300px] rounded-full bg-[#0A1628]/5 blur-[120px]" />
+        <div className="absolute bottom-[10%] left-[10%] w-[300px] h-[300px] rounded-full bg-[#0A1628]/10 blur-[120px]" />
       </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[450px] bg-white rounded-[32px] p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 relative z-10"
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-[440px] bg-[#0F111A]/60 backdrop-blur-xl border border-white/[0.06] rounded-[32px] p-10 shadow-2xl relative z-10"
       >
-        <div className="text-center mb-10">
-          <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className="w-16 h-16 bg-[#4CAF50] rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-[#4CAF50]/30"
-          >
-            <div className="w-8 h-8 border-4 border-white rounded-full border-t-transparent animate-spin-slow" />
-          </motion.div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Join Mockmate</h1>
-          <p className="text-slate-500 font-medium">Start your AI-powered career journey</p>
+        <div className="w-full flex flex-col items-center justify-center mb-10 text-center">
+          <img src="/logo.png" className="w-16 h-16 mx-auto mb-4 hover:scale-105 transition-transform duration-300" alt="MockMate Logo" />
+          <h1 className="text-2xl font-black text-white tracking-tight mb-1 uppercase font-display">Mockmate</h1>
+          <p className="text-[10px] text-[#3b82f6] font-bold uppercase tracking-[0.25em] text-glow-cyan">AI Simulation Platform</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-sm font-medium flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-            {error}
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-xs font-bold uppercase tracking-wider flex items-center gap-3">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+            <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Full Name</label>
             <div className="relative group">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-[#4CAF50] transition-colors" />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-[#3b82f6] transition-colors" />
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="John Doe"
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/20 focus:bg-white transition-all font-medium text-slate-900"
+                className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/[0.08] focus:border-[#0A1628] focus:ring-2 focus:ring-[#0A1628]/20 rounded-2xl focus:outline-none transition-all duration-300 font-semibold text-white placeholder:text-slate-600 text-sm"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+            <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Email Address</label>
             <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-[#4CAF50] transition-colors" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-[#3b82f6] transition-colors" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@example.com"
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/20 focus:bg-white transition-all font-medium text-slate-900"
+                placeholder="candidate@example.com"
+                className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/[0.08] focus:border-[#0A1628] focus:ring-2 focus:ring-[#0A1628]/20 rounded-2xl focus:outline-none transition-all duration-300 font-semibold text-white placeholder:text-slate-600 text-sm"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
+            <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Password</label>
             <div className="relative group">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-[#4CAF50] transition-colors" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-[#3b82f6] transition-colors" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/20 focus:bg-white transition-all font-medium text-slate-900"
+                className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/[0.08] focus:border-[#0A1628] focus:ring-2 focus:ring-[#0A1628]/20 rounded-2xl focus:outline-none transition-all duration-300 font-semibold text-white placeholder:text-slate-600 text-sm"
               />
             </div>
           </div>
@@ -115,35 +110,20 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#1F1F1F] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-[#4CAF50] transition-all shadow-xl shadow-slate-200 disabled:opacity-50"
+            className="w-full h-14 bg-gradient-to-r from-[#0A1628] to-[#1a3a6b] hover:from-[#00021C] hover:to-[#00021C] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,0,32,0.5)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? (
-              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              <>Create Account <ArrowRight className="w-5 h-5" /></>
+              <>Create Account <ArrowRight className="w-4 h-4" /></>
             )}
           </button>
         </form>
 
-        {/* <div className="mt-8 flex items-center gap-4">
-          <div className="h-[1px] flex-1 bg-slate-100" />
-          <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Or continue with</span>
-          <div className="h-[1px] flex-1 bg-slate-100" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 mt-8">
-          <button className="flex items-center justify-center gap-2 py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-slate-700">
-            <Github className="w-5 h-5" /> GitHub
-          </button>
-          <button className="flex items-center justify-center gap-2 py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-slate-700">
-            <div className="w-5 h-5 bg-red-500 rounded-sm" /> Google
-          </button>
-        </div> */}
-
-        <p className="mt-10 text-center text-slate-500 font-medium">
+        <p className="mt-8 text-center text-xs text-slate-500 font-semibold">
           Already have an account?{' '}
-          <Link href="/login" className="text-[#4CAF50] font-bold hover:underline">
-            Log in
+          <Link href="/login" className="text-[#3b82f6] hover:text-[#60a5fa] font-black tracking-wide uppercase transition-colors ml-1">
+            Log In
           </Link>
         </p>
       </motion.div>

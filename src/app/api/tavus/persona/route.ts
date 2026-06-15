@@ -1,10 +1,25 @@
 import { NextResponse } from 'next/server';
 
-const TAVUS_API_KEY = process.env.TAVUS_API_KEY;
 const TAVUS_BASE_URL = 'https://tavusapi.com/v2';
+
+const getTavusApiKey = () => {
+  const keys = ['tavus_api', 'mockmate_api', 'TAVUS_API_KEY'];
+  for (const k of keys) {
+    const val = process.env[k] || process.env[k.toUpperCase()] || process.env[k.toLowerCase()];
+    if (val) return val.trim();
+  }
+  for (const k of Object.keys(process.env)) {
+    if (k.trim() === 'tavus_api' || k.trim() === 'mockmate_api' || k.trim() === 'TAVUS_API_KEY') {
+      const val = process.env[k];
+      if (val) return val.trim();
+    }
+  }
+  return '';
+};
 
 export async function POST(request: Request) {
   try {
+    const TAVUS_API_KEY = getTavusApiKey();
     if (!TAVUS_API_KEY) {
       return NextResponse.json(
         { error: 'TAVUS_API_KEY not configured' },
@@ -236,6 +251,7 @@ This prompt, combined with assigned objectives, ensures a fair, consistent, and 
 
 export async function GET() {
   try {
+    const TAVUS_API_KEY = getTavusApiKey();
     if (!TAVUS_API_KEY) {
       return NextResponse.json(
         { error: 'TAVUS_API_KEY not configured' },

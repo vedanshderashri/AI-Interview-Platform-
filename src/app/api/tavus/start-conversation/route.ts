@@ -1,7 +1,36 @@
 import { NextResponse } from 'next/server';
 
-const TAVUS_API_KEY = process.env.TAVUS_API_KEY;
 const TAVUS_BASE_URL = 'https://tavusapi.com/v2';
+
+const getTavusApiKey = () => {
+  const keys = ['tavus_api', 'mockmate_api', 'TAVUS_API_KEY'];
+  for (const k of keys) {
+    const val = process.env[k] || process.env[k.toUpperCase()] || process.env[k.toLowerCase()];
+    if (val) return val.trim();
+  }
+  for (const k of Object.keys(process.env)) {
+    if (k.trim() === 'tavus_api' || k.trim() === 'mockmate_api' || k.trim() === 'TAVUS_API_KEY') {
+      const val = process.env[k];
+      if (val) return val.trim();
+    }
+  }
+  return '';
+};
+
+const getReplicaId = () => {
+  const keys = ['replica_id', 'REPLICA_ID', 'TAVUS_DEFAULT_REPLICA_ID'];
+  for (const k of keys) {
+    const val = process.env[k] || process.env[k.toUpperCase()] || process.env[k.toLowerCase()];
+    if (val) return val.trim();
+  }
+  for (const k of Object.keys(process.env)) {
+    if (k.trim() === 'replica_id' || k.trim() === 'REPLICA_ID' || k.trim() === 'TAVUS_DEFAULT_REPLICA_ID') {
+      const val = process.env[k];
+      if (val) return val.trim();
+    }
+  }
+  return 'r5f0577fc829'; // default fallback
+};
 
 /** POST /api/tavus/start-conversation
  *  Accepts optional { personaId } in body.
@@ -9,6 +38,7 @@ const TAVUS_BASE_URL = 'https://tavusapi.com/v2';
  */
 export async function POST(request: Request) {
   try {
+    const TAVUS_API_KEY = getTavusApiKey();
     if (!TAVUS_API_KEY) {
       return NextResponse.json(
         { error: 'TAVUS_API_KEY not configured' },
@@ -163,7 +193,12 @@ Ensure a fair, consistent, and professionally warm digital interview experience.
 
     // Build conversation payload
     const payload: Record<string, unknown> = {
-      replica_id: process.env.TAVUS_DEFAULT_REPLICA_ID || 'r5f0577fc829',
+      replica_id: getReplicaId(),
+      properties: {
+        max_call_duration: 300, // Hard 5-minute round limit
+        participant_left_timeout: 30,
+        participant_absent_timeout: 60
+      }
     };
     if (personaId) {
       payload.persona_id = personaId;

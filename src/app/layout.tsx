@@ -13,7 +13,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'Kriyeta AI | Interview Platform',
+  title: 'Mockmate | Interview Platform',
   description: 'AI-powered interview simulator with real-time analytics.',
 };
 
@@ -30,7 +30,22 @@ export default function RootLayout({
       className={`${inter.variable} ${outfit.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="h-full flex bg-white text-slate-900 font-inter" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.theme === 'light' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+                  document.documentElement.classList.add('light')
+                } else {
+                  document.documentElement.classList.remove('light')
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="h-full flex font-inter" suppressHydrationWarning>
         <Sidebar />
         <main className="flex-1 h-screen overflow-y-auto relative scrollbar-none">
           {children}

@@ -23,11 +23,11 @@ export function AiCharacter({ isSpeaking, isThinking, name = 'Kriyeta', conversa
           style={{
             background: 'rgba(99,102,241,0.18)',
             borderColor: 'rgba(99,102,241,0.45)',
-            color: '#a5b4fc',
+            color: '#7dd3fc',
           }}
         >
           <span
-            className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse"
+            className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#2563eb] animate-pulse"
           />
           {name} — Live AI Interviewer
         </div>
